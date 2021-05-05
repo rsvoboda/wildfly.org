@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+<feed xmlns="http://www.w3.org/2005/Atom" >
+  <generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator>
+  <link href="https://wildfly.org//feed.xml" rel="self" type="application/atom+xml" />
+  <link href="https://wildfly.org//" rel="alternate" type="text/html" />
+  <updated>2021-05-05T14:05:43+00:00</updated>
+  <id>https://wildfly.org/</id>
+
+  
+  
+    <title type="html">WildFly</title>
+  
+
+  
+    <entry>
+      <title type="html">Helm Chart for WildFly</title>
+      <link href="https://wildfly.org//news/2021/05/05/helm-charts-for-wildfly/" rel="alternate" type="text/html" title="Helm Chart for WildFly" />
+      <published>2021-05-05T00:00:00+00:00</published>
+      <updated>2021-05-05T00:00:00+00:00</updated>
+      <id>https://wildfly.org//news/2021/05/05/helm-charts-for-wildfly</id>
+      
+      
+        <content type="html" xml:base="https://wildfly.org//news/2021/05/05/helm-charts-for-wildfly/">&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;https://helm.sh&quot;&gt;Helm&lt;/a&gt; is a tool that helps define, install and upgrade complex applications on Kubernetes clusters.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We have now released a Helm Chart for WildFly to help our users build and deploy WildFly applications on OpenShift that leverages all the innovative features provided by the WildFly ecosystem.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;wildfly&lt;/code&gt; Chart can be used to achieve two objectives:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;build an application image from a Git repository containing a Java project. This step leverages WildFly features such as Galleon provisioning or Bootable Jar to provide the fittest image for your application requirements.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;deploy an application image with all the resources and configuration needed to integrate it on OpenShift.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;By default, the two steps are connected: the &lt;code&gt;build&lt;/code&gt; step&amp;#8217;s output is an application image that becomes the input of the &lt;code&gt;deploy&lt;/code&gt; step.
+However, it is possible to enable or disable these steps: if you have another way to build your application image, you can disable the &lt;code&gt;build&lt;/code&gt; step and still deploy it by specifying where your application image can be pulled.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;All the chart configuration is described in the &lt;a href=&quot;https://github.com/wildfly/wildfly-charts/blob/main/charts/wildfly/README.md&quot;&gt;Chart documentation&lt;/a&gt;.
+In this post, we will focus on a simple MicroProfile application to show you how the Helm chart simplifies its deployment on OpenShift.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;microprofile-application-example&quot;&gt;MicroProfile Application Example&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We will use one WildFly quickstart as an example: &lt;a href=&quot;https://github.com/wildfly/quickstart/tree/master/microprofile-config&quot;&gt;microprofile-config&lt;/a&gt;.
+We will not cover the code of this example but the important things to mention are:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;This application will be running as a &lt;a href=&quot;https://docs.wildfly.org/bootablejar/&quot;&gt;WildFly Bootable Jar&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;It uses MicroProfile API and provides a HTTP endpoint. A WildFly server will be provisioned with the &lt;code&gt;jaxrs-server&lt;/code&gt; and &lt;code&gt;microprofile-platform&lt;/code&gt; layers so that server contains all the bits (and only those!) to run these features.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Its HTTP endpoint uses MicroProfile Config to read a config property from the &lt;code&gt;CONFIG_PROP&lt;/code&gt; environment variable and returns its value in the HTTP response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;install-helm-and-have-access-to-an-openshift-cluster&quot;&gt;Install Helm and have access to an OpenShift cluster.&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Please refer to &lt;a href=&quot;https://helm.sh/docs/intro/install/&quot;&gt;Installing Helm&lt;/a&gt; page to install Helm in your environment.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We will use &lt;a href=&quot;https://developers.redhat.com/developer-sandbox&quot;&gt;Developer Sandbox for Red Hat OpenShift&lt;/a&gt; as our OpenShift cluster and make sure that we are logged in the cluster and that the &lt;code&gt;oc&lt;/code&gt; command applies to that cluster.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;install-helm-repository-for-wildfly-chart&quot;&gt;Install Helm Repository for WildFly Chart&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;wildfly&lt;/code&gt; Chart can be installed from the &lt;a href=&quot;https://docs.wildfly.org/wildfly-charts/&quot; class=&quot;bare&quot;&gt;https://docs.wildfly.org/wildfly-charts/&lt;/a&gt; repository&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-nowrap&quot; data-lang=&quot;nowrap&quot;&gt;$ helm repo add wildfly https://docs.wildfly.org/wildfly-charts/
+&quot;wildfly&quot; has been added to your repositories
+$ helm search repo wildfly
+NAME                    CHART VERSION   APP VERSION     DESCRIPTION
+wildfly/wildfly         1.3.0           23.0            Build and Deploy WildFly applications on OpenShift$ helm search repo wildfly&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The first thing to notice is that the &lt;code&gt;APP VERSION&lt;/code&gt; points to &lt;code&gt;23.0&lt;/code&gt;. By default, the Chart will deploy your application using the latest WildFly 23.0 release (23.0.2.Final at the time of this writing).&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;install-the-application-on-openshift&quot;&gt;Install the Application on OpenShift&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Once the &lt;code&gt;wildfly&lt;/code&gt; Chart is added, we can instal a Helm &lt;strong&gt;release&lt;/strong&gt; by using the &lt;code&gt;helm install&lt;/code&gt; command with the name of the release as well as a YAML configuration file that contains all the settings to build and deploy the application:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ helm install microprofile-config-app \
+    wildfly/wildfly \
+    -f https://raw.githubusercontent.com/wildfly/wildfly-charts/main/examples/microprofile-config/microprofile-config-app.yaml
+
+NAME: microprofile-config-app
+LAST DEPLOYED: Tue May  4 14:52:02 2021
+NAMESPACE: jmesnil1-dev
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+Your WildFly appplication is building! To follow the build, run:
+
+$ oc get build -w
+
+Note that your Deployment will report &quot;ErrImagePull&quot; and &quot;ImagePullBackOff&quot; until the build is complete. Once the build is complete, your image will be automatically rolled out.
+
+To follow the deployment of your application, run:
+
+$ oc get deployment microprofile-config-app -w&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As you can read above, the ouput of the &lt;code&gt;helm install&lt;/code&gt; command contains instructions to follow the installation of the application.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We can watch its build by running:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ oc get build -w
+NAME                        TYPE     FROM          STATUS    STARTED         DURATION
+microprofile-config-app-1   Source   Git@7f0eed5   Running   2 minutes ago
+microprofile-config-app-1   Source   Git@7f0eed5   Complete   4 minutes ago   4m30s&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;After the application is built, we can watch its deployment by running:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ oc get deployment microprofile-config-app -w
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+microprofile-config-app   0/1     1            0           4m4s
+microprofile-config-app   0/1     1            0           4m30s
+microprofile-config-app   1/1     1            1           5m17s&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The application is now available and we can query it.
+By default, the Helm Chart will create a &lt;code&gt;Route&lt;/code&gt; to access the application:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ oc get route
+NAME                      HOST/PORT                                                                        PATH   SERVICES                  PORT    TERMINATION     WILDCARD
+microprofile-config-app   microprofile-config-app-jmesnil1-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com          microprofile-config-app   &amp;lt;all&amp;gt;   edge/Redirect   None&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;HOST/PORT&lt;/code&gt; value is specific to my cluster and your route will have a different value&lt;/p&gt;
+&lt;/div&gt;
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We can then query the HTTP endpoint by using this information:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ curl -L  http://$(oc get route microprofile-config-app -o jsonpath=&quot;{.spec.host}&quot;)/config/value
+Hello from OpenShift&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The application is up and running.
+Let&amp;#8217;s now look at the configuration file that the Chart used to install the application.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;looking-at-the-helm-release-file&quot;&gt;Looking at the Helm Release File&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Let&amp;#8217;s deep dive in the &lt;a href=&quot;https://raw.githubusercontent.com/wildfly/wildfly-charts/main/examples/microprofile-config/microprofile-config-app.yaml&quot;&gt;YAML File&lt;/a&gt; that we use to install the application (&lt;a href=&quot;https://raw.githubusercontent.com/wildfly/wildfly-charts/main/examples/microprofile-config/microprofile-config-app.yaml&quot; class=&quot;bare&quot;&gt;https://raw.githubusercontent.com/wildfly/wildfly-charts/main/examples/microprofile-config/microprofile-config-app.yaml&lt;/a&gt;):&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-yaml&quot; data-lang=&quot;yaml&quot;&gt;build:
+  uri: https://github.com/wildfly/quickstart.git
+  ref: 23.0.2.SP1
+  mode: bootable-jar
+  env:
+  - name: ARTIFACT_DIR
+    value: microprofile-config/target
+  - name: MAVEN_ARGS_APPEND
+    # Use the bootable-jar-openshift profile to ensure that the application
+    # can be deployed on OpenShift but disable JKube as the image will be
+    # built and deployed by this chart.
+    value: -am -pl microprofile-config -Pbootable-jar-openshift -Djkube.skip=true
+  - name: MAVEN_OPTS
+    value: '-XX:MetaspaceSize=251m -XX:MaxMetaspaceSize=256m'
+deploy:
+  replicas: 1
+  env:
+  - name: CONFIG_PROP
+    value: Hello from OpenShift&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The first thing to notice is that the configuration file contains two main sections &lt;code&gt;build&lt;/code&gt; and &lt;code&gt;deploy&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;build&lt;/code&gt; section focuses on building the application image using an OpenShift &lt;code&gt;BuildConfig&lt;/code&gt; resource.
+The &lt;code&gt;BuildConfig&lt;/code&gt; resource pulls the application from a Git repository (based on the &lt;code&gt;uri&lt;/code&gt; and &lt;code&gt;ref&lt;/code&gt; fields).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;mode&lt;/code&gt; field specifies which types of application image to build. There are two valid modes: &lt;code&gt;s2i&lt;/code&gt; and &lt;code&gt;bootable-jar&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;s2i&lt;/code&gt; build mode uses WildFly Source-to-Image (S2I) Builder and Runtime images to create the application image.
+In the &lt;code&gt;bootable-jar&lt;/code&gt; build mode, the &lt;code&gt;BuildConfig&lt;/code&gt; will compile the application as a Bootable Jar and use the OpenJDK 11 image as the base image.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Finally there is an &lt;code&gt;env&lt;/code&gt; section that contains any environment variables needed to &lt;strong&gt;build&lt;/strong&gt; the image. We have three environment variables that are needed for Maven options.
+As a whole they mean that we build only the specific &lt;code&gt;microprofile-config&lt;/code&gt; Maven module from the quickstart Git repository with the &lt;code&gt;bootable-jar-openshift&lt;/code&gt; Maven Profile (to create a Bootable Jar) and use its artifact as the target of the application image.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;code&gt;deploy&lt;/code&gt; section focuses on deploying the application image on OpenShift. It creates different resources (&lt;code&gt;Deployment&lt;/code&gt;, one or many &lt;code&gt;Services&lt;/code&gt;, a &lt;code&gt;Route&lt;/code&gt;) to make the application accessible from inside and outside the cluster by default.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We have only defined two fields in that section:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;replicas&lt;/code&gt; which specifies the number of pods that the application will use&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;env&lt;/code&gt; wich are environment variables needed to &lt;strong&gt;run&lt;/strong&gt; the image. In our example, we only have one named &lt;code&gt;CONFIG_PROP&lt;/code&gt; and its value is used in the HTTP endpoint&amp;#8217;s response.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;There are a lot of things to discuss with this chart and we will have other blog posts to showcase its features.
+All of them are documented in the &lt;a href=&quot;https://github.com/wildfly/wildfly-charts/blob/main/charts/wildfly/README.md&quot;&gt;&lt;code&gt;wildfly&lt;/code&gt; Chart documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;However as a last example, one of the interesting features of Helm is that the YAML configuration file can be overridden on the command line to provide additional customization to the application.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To highlight this, we will &lt;strong&gt;upgrade&lt;/strong&gt; the application by changing the number of replicas of the applications so that we have &lt;code&gt;3&lt;/code&gt; pods instead of &lt;code&gt;1&lt;/code&gt; (by setting the &lt;code&gt;deploy.replicas&lt;/code&gt; field to 3 with the &lt;code&gt;helm upgrade&lt;/code&gt; command)&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-nowrap&quot; data-lang=&quot;nowrap&quot;&gt;$ helm upgrade microprofile-config-app \
+    wildfly/wildfly \
+    -f https://raw.githubusercontent.com/wildfly/wildfly-charts/main/examples/microprofile-config/microprofile-config-app.yaml \
+    --set deploy.replicas=3
+Release &quot;microprofile-config-app&quot; has been upgraded. Happy Helming!
+NAME: microprofile-config-app
+LAST DEPLOYED: Tue May  4 15:21:29 2021
+NAMESPACE: jmesnil1-dev
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If we watch the deployment, we see that the application is now scaling up to 3:&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ oc get deployment microprofile-config-app -w
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+microprofile-config-app   1/3     3            1           29m
+microprofile-config-app   2/3     3            2           30m
+microprofile-config-app   3/3     3            3           30m&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The Helm Chart for WildFly simplifies building and deploying WildFly application on OpenShift and Kubernetes.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This &lt;code&gt;wildfly&lt;/code&gt; Chart is designed to leverage WildFly features (such as Bootable Jar, Galleon provisioning, S2I) to make sure WildFly applications can be deployed and maintained on OpenShift with ease.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;more-information&quot;&gt;More information&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://helm.sh&quot;&gt;Helm - The package manager for Kubernetes&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/wildfly-charts&quot;&gt;wildfly-charts Project Page&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/wildfly-charts/blob/main/charts/wildfly/README.md&quot;&gt;&lt;code&gt;wildfly&lt;/code&gt; Chart documentation&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://developers.redhat.com/developer-sandbox&quot;&gt;Developer Sandbox for Red Hat OpenShift&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://docs.wildfly.org/bootablejar/&quot;&gt;WildFly Bootable Jar&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Jeff Mesnil</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="wildfly" />
+      
+        <category term="openshift" />
+      
+        <category term="helm" />
+      
+
+      
+        <summary type="html">Helm is a tool that helps define, install and upgrade complex applications on Kubernetes clusters.</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">WildFly 23.0.2 is released!</title>
+      <link href="https://wildfly.org//news/2021/04/29/WildFly2302-Released/" rel="alternate" type="text/html" title="WildFly 23.0.2 is released!" />
+      <published>2021-04-29T00:00:00+00:00</published>
+      <updated>2021-04-29T00:00:00+00:00</updated>
+      <id>https://wildfly.org//news/2021/04/29/WildFly2302-Released</id>
+      
+      
+        <content type="html" xml:base="https://wildfly.org//news/2021/04/29/WildFly2302-Released/">&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly 23.0.2.Final is now available &lt;a href=&quot;https://wildfly.org/downloads&quot;&gt;for download&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;After the release of Jakarta EE 9 the Jakarta EE Platform Project has been busy with the &lt;a href=&quot;https://eclipse-ee4j.github.io/jakartaee-platform/jakartaee9/JakartaEE9.1ReleasePlan&quot;&gt;Jakarta EE 9.1 Release&lt;/a&gt;.  This has now progressed to the point that a candidate release of the Jakarta EE 9.1 TCK is available with WildFly 23.0.2.Final being our release candidate as a compatible implementation based on this TCK.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;wildfly-preview-and-jakarta-ee-9&quot;&gt;WildFly Preview and Jakarta EE 9&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly Preview variant&lt;/a&gt; of the server still passes the Jakarta EE 9 for the TCKs &lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9/WildFly_23.0.2.Final/jakarta-full-platform.adoc&quot;&gt;Full Platform&lt;/a&gt; and the &lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9/WildFly_23.0.2.Final/jakarta-web-profile.adoc&quot;&gt;Web Profile&lt;/a&gt;.  We have previously sent a &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/326&quot;&gt;compatibility certification request for the Full Platform&lt;/a&gt; for WildFly Preview 23.0.1.Final and a &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/315&quot;&gt;compatibility certification request for the Web Profile&lt;/a&gt; for WildFly Preview 23.0.0.Final.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Once released, Jakarta EE 9.1 will be the first Jakarta EE release that allows a server to certify using both Java 8 and Java 11 for both the web profile and the full platform.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For the various permutations we have published the following test results using the &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly Preview variant&lt;/a&gt; of the server with the candidate release of the Jakarta EE 9.1 TCKs and submitted corresponding certification requests to Eclipse.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9.1/WildFly_23.0.2.Final/jakarta-web-profile-jdk8.adoc&quot;&gt;Test Results - Web Profile - Java 8&lt;/a&gt; / &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/349&quot;&gt;Certification Request - Web Profile - Java 8&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9.1/WildFly_23.0.2.Final/jakarta-web-profile.adoc&quot;&gt;Test Results - Web Profile - Java 11&lt;/a&gt; / &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/347&quot;&gt;Certification Request - Web Profile - Java 11&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9.1/WildFly_23.0.2.Final/jakarta-full-platform-jdk8.adoc&quot;&gt;Test Results - Full Platform - Java 8&lt;/a&gt; / &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/348&quot;&gt;Certification Request - Full Platform - Java 8&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9.1/WildFly_23.0.2.Final/jakarta-full-platform.adoc&quot;&gt;Test Results - Full Platform - Java 11&lt;/a&gt; / &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/346&quot;&gt;Certification Request - Full Platform - Java 11&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;We are hopeful this will mean the &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly Preview variant&lt;/a&gt; of the server can be declared compatible with Jakarta EE 9.1 at the time it is released for the Web Profile and Full Platform against both Java 8 and Java 11.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This has been a busy couple of weeks working through the remaining issues to pass the candidate release of the Jakarta EE Platform 9.1 TCKs with particular thanks to Brian Stansberry, Scott Marlow, Richard Opalka, Jean-Francois Denise, Tomasz Adamski, Jim Ma, and Alessio Soldano for making it happen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As is described in the &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly docs&lt;/a&gt;, WildFly Preview is a tech preview variant of the server meant to allow our community to get an early look at new things we&amp;#8217;re looking to eventually bring into the standard WildFly variant. Currently, the main (but not only) difference from standard WildFly is support of Jakarta EE 9 and 9.1 instead of EE 8.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly Preview is not a compatible Jakarta EE 8 or MicroProfile Platform 4.0 implementation, although we do expect most apps using the EE 8 and MP 4 APIs to run well on it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly Preview is available on the &lt;a href=&quot;https://wildfly.org/downloads&quot;&gt;download page&lt;/a&gt;, next to the standard WildFly download links for the same version. Look for the 'WildFly Preview EE 9 Distribution' links.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The full list of issues resolved in WildFly 23.0.2 is available &lt;a href=&quot;https://issues.redhat.com/secure/ReleaseNote.jspa?projectId=12313721&amp;amp;version=12356561&quot;&gt;here&lt;/a&gt;. WildFly 23.0.2.Final is using the same version of WildFly Core as was used in the 23.0.1.Final release so no WildFly Core specific fixes have been applied.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Enjoy!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Darran Lofthouse</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="announcement" />
+      
+        <category term="release" />
+      
+
+      
+        <summary type="html">WildFly 23.0.2.Final is now available for download.</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">WildFly 23.0.1 is released!</title>
+      <link href="https://wildfly.org//news/2021/04/14/WildFly2301-Released/" rel="alternate" type="text/html" title="WildFly 23.0.1 is released!" />
+      <published>2021-04-14T00:00:00+00:00</published>
+      <updated>2021-04-14T00:00:00+00:00</updated>
+      <id>https://wildfly.org//news/2021/04/14/WildFly2301-Released</id>
+      
+      
+        <content type="html" xml:base="https://wildfly.org//news/2021/04/14/WildFly2301-Released/">&lt;div id=&quot;preamble&quot;&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly 23.0.1.Final is now available &lt;a href=&quot;https://wildfly.org/downloads&quot;&gt;for download&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;It&amp;#8217;s been about a month since the WildFly 23 release, so we&amp;#8217;ve done a bug fix update, WildFly 23.0.1.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;wildfly-preview-and-jakarta-ee-9-0&quot;&gt;WildFly Preview and Jakarta EE 9.0&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The big news in this release is the fact that the &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly Preview variant&lt;/a&gt; of the server passes the TCKs for the Jakarta EE 9.0 &lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9/WildFly_23.0.1.Final/jakarta-full-platform.adoc&quot;&gt;Full Platform&lt;/a&gt; and the &lt;a href=&quot;https://github.com/wildfly/certifications/blob/EE9/WildFly_23.0.1.Final/jakarta-web-profile.adoc&quot;&gt;Web Profile&lt;/a&gt;. We&amp;#8217;ve sent a &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/326&quot;&gt;compatibility certification request for the Full Platform&lt;/a&gt; to Eclipse. We&amp;#8217;d previously been able to &lt;a href=&quot;https://github.com/eclipse-ee4j/jakartaee-platform/issues/315&quot;&gt;certify compatibility with the Web Profile&lt;/a&gt; for WildFly Preview 23.0.0.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I&amp;#8217;m very excited about this achievement and am so proud of the great WildFly contributors who made it happen, particularly Scott Marlow, Richard Opalka, Jean-Francois Denise, Geoffrey DeSmet, Emmanuel Hugonnet, Farah Juma, Jason Lee, Jim Ma, Matej Novotny, Flavia Rainone and Parul Sharma.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As is described in the &lt;a href=&quot;https://docs.wildfly.org/23/WildFly_and_WildFly_Preview.html&quot;&gt;WildFly docs&lt;/a&gt;, WildFly Preview is a tech preview variant of the server meant to allow our community to get an early look at new things we&amp;#8217;re looking to eventually bring into the standard WildFly variant. Currently, the main (but not only) difference from standard WildFly is support of Jakarta EE 9 instead of EE 8.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly Preview is not a compatible Jakarta EE 8 or MicroProfile Platform 4.0 implementation, although we do expect most apps using the EE 8 and MP 4 APIs to run well on it.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;WildFly Preview is available on the &lt;a href=&quot;https://wildfly.org/downloads&quot;&gt;download page&lt;/a&gt;, next to the standard WildFly download links for the same version. Look for the 'WildFly Preview EE 9 Distribution' links.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;release-notes&quot;&gt;Release Notes&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The full list of issues resolved in WildFly 23.0.1 is available &lt;a href=&quot;https://issues.redhat.com/secure/ReleaseNote.jspa?projectId=12313721&amp;amp;version=12354096&quot;&gt;here&lt;/a&gt;. Issues resolved in the WildFly Core update included with WildFly 23.0.1 are available &lt;a href=&quot;https://issues.redhat.com/secure/ReleaseNote.jspa?projectId=12315422&amp;amp;version=12354209&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Enjoy!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Brian Stansberry</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="announcement" />
+      
+        <category term="release" />
+      
+
+      
+        <summary type="html">WildFly 23.0.1.Final is now available for download.</summary>
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">WildFly Encrypted Expression Support</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/wildfly-encrypted-expressions/" rel="alternate" type="text/html" title="WildFly Encrypted Expression Support" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/wildfly-encrypted-expressions/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/wildfly-encrypted-expressions/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Darran Lofthouse</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="elytron" />
+      
+        <category term="wildfly" />
+      
+        <category term="encryption" />
+      
+        <category term="aes" />
+      
+        <category term="expression" />
+      
+        <category term="management-model" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">Upcoming hash character sets and hash encodings support in Elytron</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/upcoming-hash-encodings/" rel="alternate" type="text/html" title="Upcoming hash character sets and hash encodings support in Elytron" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/upcoming-hash-encodings/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/upcoming-hash-encodings/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Sonia Zaldana Calles</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="wildfly" />
+      
+        <category term="elytron" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">Upcoming SSLContext that supports delegation to alternate instances based on peer information</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/sslcontext-delegation-to-alternate-instances-based-on-peer/" rel="alternate" type="text/html" title="Upcoming SSLContext that supports delegation to alternate instances based on peer information" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/sslcontext-delegation-to-alternate-instances-based-on-peer/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/sslcontext-delegation-to-alternate-instances-based-on-peer/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Diana Krepinska Vilkolakova</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="elytron" />
+      
+        <category term="wildfly23" />
+      
+        <category term="ssl" />
+      
+        <category term="context" />
+      
+        <category term="delegation" />
+      
+        <category term="dynamic" />
+      
+        <category term="peer" />
+      
+        <category term="information" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">Normalize principal propagation/injection across elytron and legacy</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/normalization-of-EJB-principal-propagation/" rel="alternate" type="text/html" title="Normalize principal propagation/injection across elytron and legacy" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/normalization-of-EJB-principal-propagation/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/normalization-of-EJB-principal-propagation/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Diana Krepinska Vilkolakova</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="elytron" />
+      
+        <category term="wildfly23" />
+      
+        <category term="ejb" />
+      
+        <category term="principal" />
+      
+        <category term="propagation" />
+      
+        <category term="authentication" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">Upcoming SSL features: Multiple certificate revocation lists support and SSLv2Hello support</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/new-ssl-features/" rel="alternate" type="text/html" title="Upcoming SSL features: Multiple certificate revocation lists support and SSLv2Hello support" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/new-ssl-features/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/new-ssl-features/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Sonia Zaldana Calles</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="wildfly" />
+      
+        <category term="elytron" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">New Security Features in WildFly 23</title>
+      <link href="https://wildfly-security.github.io/wildfly-elytron/blog/new-security-features-in-wildfly-23/" rel="alternate" type="text/html" title="New Security Features in WildFly 23" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly-security.github.io/wildfly-elytron/blog/new-security-features-in-wildfly-23/</id>
+      
+      
+        <content type="html" xml:base="https://wildfly-security.github.io/wildfly-elytron/blog/new-security-features-in-wildfly-23/"></content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Farah Juma</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="elytron" />
+      
+        <category term="release" />
+      
+        <category term="wildfly23" />
+      
+
+      
+
+      
+      
+    </entry>
+  
+    <entry>
+      <title type="html">WildFly Bootable JAR 4.0 is released!</title>
+      <link href="https://wildfly.org//news/2021/03/19/bootable-jar-4.0.Final-Released/" rel="alternate" type="text/html" title="WildFly Bootable JAR 4.0 is released!" />
+      <published>2021-03-19T00:00:00+00:00</published>
+      <updated>2021-03-19T00:00:00+00:00</updated>
+      <id>https://wildfly.org//news/2021/03/19/bootable-jar-4.0.Final-Released</id>
+      
+      
+        <content type="html" xml:base="https://wildfly.org//news/2021/03/19/bootable-jar-4.0.Final-Released/">&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The 4.0.0.Final version of the &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-jar-maven-plugin/&quot;&gt;WildFly Bootable JAR Maven plugin&lt;/a&gt; has been released.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;For people who are not familiar with the WildFly Bootable JAR, I strongly recommend that you read
+this &lt;a href=&quot;https://www.wildfly.org/news/2020/10/19/bootable-jar-2.0-released/&quot;&gt;blog post&lt;/a&gt; that covers it in detail.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;wildfly-cli-script-executed-at-startup-time&quot;&gt;WildFly CLI script executed at startup time&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Starting with the recently &lt;a href=&quot;https://www.wildfly.org/news/2021/03/11/WildFly23-Final-Released/&quot;&gt;announced&lt;/a&gt; WildFly 23, the bootable JAR runtime allows you to execute a WildFly CLI script when launching the bootable JAR. Although applying
+changes to the server configuration at build time is the preferred way (no impact on startup time), runtime execution gives you the flexibility
+to adjust the server configuration to the execution context.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/4.0.0.Final/examples/authentication&quot;&gt;authentication&lt;/a&gt; example has been evolved
+with a new 'runtime-config' Maven profile to disable CLI script execution at build time in favor of runtime execution.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;To execute a CLI script during boot: &lt;code&gt;java -jar app-bootable.jar --cli-script=&amp;lt;path to CLI script&amp;gt;&lt;/code&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock note&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Note&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+This support is Tech Preview as the mechanism may change in later releases.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;jboss-modules-module-artifact-upgrades&quot;&gt;JBoss Modules module artifact upgrades&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Starting with WildFly 23, you can upgrade part of the server when building a bootable JAR.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This offers you the ability to use a different version of an identified component of the server (eg: an Undertow artifact, a JDBC driver
+provided by a third party Galleon feature-pack, &amp;#8230;&amp;#8203;). Obviously the updated component must be compatible with the server in which it is provisioned&amp;#8230;&amp;#8203;
+This is done at your own risk ;-).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;wildfly-galleon-feature-pack-server-artifact-packaging&quot;&gt;WildFly Galleon feature-pack server artifact packaging&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The way the JBoss Modules module artifacts that compose a WildFly server are packaged inside a WildFly Galleon feature-pack
+allows you to override their version when building a Bootable JAR.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Instead of packaging the artifact binaries inside Galleon feature-packs, the artifacts' Maven coordinates
+are packaged. The actual artifact files are resolved when a WildFly server is built using Galleon (or when building a bootable JAR).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;This way of packaging artifacts is not new; WildFly follows this design pattern since the first Galleon releases. (This is what allows you to provision
+a slim WildFly server or a &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/4.0.0.Final/examples/slim&quot;&gt;slim WildFly bootable JAR&lt;/a&gt;).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;If you design custom Galleon feature-packs for WildFly, we encourage you, when applicable (the artifacts must be released in an accessible Maven repository), to design your feature-packs by following this pattern.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As an example, the &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-datasources-galleon-pack&quot;&gt;WildFly datasources Galleon feature-pack&lt;/a&gt; (that provides drivers and datasources
+for some major databases) pom file contains in its &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-datasources-galleon-pack/blob/1.2.3.Final/pom.xml#L49&quot;&gt;dependencies&lt;/a&gt;
+the driver artifacts that it can bring to the server.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The JBoss Modules modules that contain the driver artifacts (e.g. &lt;a href=&quot;https://github.com/wildfly-extras/wildfly-datasources-galleon-pack/blob/1.2.3.Final/src/main/resources/modules/org/postgresql/jdbc/main/module.xml#L4&quot;&gt;the postgresql driver module&lt;/a&gt;)
+only reference the GroupId and ArtifactId of the artifact. The artifact versions are stored inside the feature-pack but outside of the JBoss Modules module.
+This separation between the GroupId, ArtifactId (optionally Classifier) and the Version is what makes it possible to upgrade when building a bootable JAR.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;to-learn-more-about-artifact-upgrades&quot;&gt;To learn more about artifact upgrades&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;The &lt;a href=&quot;https://docs.wildfly.org/bootablejar/#wildfly_jar_advanced_upgrade&quot;&gt;WildFly bootable JAR documentation&lt;/a&gt; contains more information about this capability.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;myfaces-galleon-feature-pack&quot;&gt;MyFaces Galleon feature-pack&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;I&amp;#8217;m happy to take the opportunity of this blog post to mention a new community &lt;a href=&quot;https://github.com/melloware/wildfly-myfaces-galleon-pack&quot;&gt;project&lt;/a&gt; that defines Galleon feature-packs
+that you can use with the WildFly 23 Galleon feature-pack (and &quot;WildFly Preview&quot; Galleon feature-pack) to build a
+Bootable JAR (or to provision a server using Galleon) containing a JSF implementation based on &lt;a href=&quot;https://myfaces.apache.org&quot;&gt;MyFaces&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;known-issues&quot;&gt;Known issues&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;incompatibility-with-keycloak-client-adapter-galleon-feature-pack&quot;&gt;Incompatibility with Keycloak client adapter Galleon feature-pack&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Due to some incompatible changes in the WildFly Galleon feature-pack (i.e. the removal of core and servlet Galleon feature-packs in the dependency chain)
+the Keycloak 12.0.x OIDC client adapter Galleon feature-pack can&amp;#8217;t be used with the WildFly 23 Galleon feature-pack.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;As a workaround, we have setup a &lt;a href=&quot;https://github.com/jfdenise/wildfly-bootable-jar-keycloack-zipped-adapter&quot;&gt;project&lt;/a&gt; that highlights the workaround you need to follow to include the Keycloak 12.0.x OIDC client adapter inside a WildFly 23
+bootable JAR. In summary, we are including in the bootable JAR the content of the Keycloak zipped client adapter (that you can download from &lt;a href=&quot;https://www.keycloak.org/downloads&quot;&gt;Keycloak downloads&lt;/a&gt;).
+In addition the WildFly server security is configured by the &lt;code&gt;adapter-elytron-install.cli&lt;/code&gt; WildFly CLI script that is packaged in the zipped adapter.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;to-conclude&quot;&gt;To conclude&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Finally we would really appreciate if if you would keep us posted with your feedback and new requirements. (You can log these as new
+&lt;a href=&quot;https://github.com/wildfly-extras/wildfly-jar-maven-plugin/issues&quot;&gt;project issues&lt;/a&gt;.) This will help us evolve the WildFly Bootable JAR experience in the right direction.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Thank-you!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;JF Denise&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content>
+      
+
+      
+      
+      
+      
+      
+
+      <author>
+        <name>Jean-François Denise</name>
+        
+        
+      </author>
+
+      
+        
+      
+
+      
+        <category term="wildfly" />
+      
+        <category term="galleon" />
+      
+        <category term="bootable" />
+      
+        <category term="jar" />
+      
+        <category term="bootable-jar" />
+      
+
+      
+        <summary type="html">The 4.0.0.Final version of the WildFly Bootable JAR Maven plugin has been released.</summary>
+      
+
+      
+      
+    </entry>
+  
+
+</feed>
+
